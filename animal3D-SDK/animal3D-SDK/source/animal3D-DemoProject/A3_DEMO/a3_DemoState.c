@@ -474,8 +474,23 @@ void a3demo_initScene(a3_DemoState *demoState)
 
 
 	// planets
-	// ****TO-DO: INITIALIZE PLANET DATA
 	//	(don't forget about the count to make life easier)
+	demoState->planetCount = 5;
+	for (unsigned int i = 0; i < demoState->planetCount; i++)
+	{
+		a3demo_initSceneObject(demoState->planetObject + i);
+		a3demo_moveSceneObject(demoState->planetObject + i, (const a3real)4 * (const a3real)i, (const a3real)3, (const a3real)0, (const a3real)0);
+	}
+
+	demoState->planetScales[1] = .25f;
+	demoState->planetScales[2] = .75f;
+	demoState->planetScales[3] = .8f;
+	demoState->planetScales[4] = .5f;
+	
+	demoState->planetColorIndices[1] = 1;
+	demoState->planetColorIndices[2] = 2;
+	demoState->planetColorIndices[3] = 3;
+	demoState->planetColorIndices[4] = 4;
 
 	demoState->displayPlanetNames = 1;
 
@@ -620,20 +635,36 @@ void a3demo_update(a3_DemoState *demoState, double dt)
 
 	const double daysPerHour = 1.0 / 24.0;
 
-	// ****TO-DO: INTEGRATION OCCURS HERE... WELCOME TO PHYSICS!
 
-	// ****TO-DO: rotate and position objects
-	if (demoState->verticalAxis)
+	for (unsigned int i = 1; i < demoState->planetCount; i++)
 	{
-		// y-up
+		if (demoState->verticalAxis)
+		{
+			// y-up
+		}
+		else
+		{
+			// z-up
+			a3real x = demoState->planetObject[i].position.x;
+			a3real y = demoState->planetObject[i].position.y;
 
+			//Calculate speed based on how far planet is from sun, farther planets away move slower
+			a3real distToSun = (a3real)a3sqrt((a3f64)(x * x) + (a3f64)(y * y));
+			a3real speed = (1/distToSun) * 100;
+			
+			//Move positions using simple trig
+			a3real newX = x*a3cosd((a3real)dt * speed) - y*a3sind((a3real)dt * speed);
+			a3real newY = x*a3sind((a3real)dt * speed) + y*a3cosd((a3real)dt * speed);
+
+			a3vec3 newPos;
+			newPos.x = newX;
+			newPos.y = newY;
+			newPos.z = 0;
+
+			demoState->planetObject[i].position = newPos;
+			a3demo_rotateSceneObject(demoState->sceneObject + i, 1, 0, 0, 1);
+		}
 	}
-	else
-	{
-		// z-up
-
-	}
-
 
 	// update scene objects
 	for (i = 0; i < demoStateMaxCount_sceneObject; ++i)
@@ -644,16 +675,15 @@ void a3demo_update(a3_DemoState *demoState, double dt)
 		a3demo_updateCameraViewProjection(demoState->camera + i);
 
 
-	// ****TO-DO: apply scales to planets
 	// the raw geometry is all unit size so we apply scale as needed
 	// do not change the raw geometry's size as this will complicate things later
-	for (i = 0; i < demoState->planetCount; ++i)
+	for (i = 1; i < demoState->planetCount; ++i)
 	{
 		// hint: multiply the rotation columns in the model matrix
 		//	by the appropriate scale value, whatever that may be...
-	//	a3real3MulS(demoState->planetObject[i].modelMat.m[0], examplePlanetScale);
-	//	a3real3MulS(demoState->planetObject[i].modelMat.m[1], examplePlanetScale);
-	//	a3real3MulS(demoState->planetObject[i].modelMat.m[2], examplePlanetScale);
+		a3real3MulS(demoState->planetObject[i].modelMat.m[0], demoState->planetScales[i]);
+		a3real3MulS(demoState->planetObject[i].modelMat.m[1], demoState->planetScales[i]);
+		a3real3MulS(demoState->planetObject[i].modelMat.m[2], demoState->planetScales[i]);
 	}
 }
 
@@ -779,9 +809,20 @@ void a3demo_render(const a3_DemoState *demoState)
 
 	for (i = 1; i < demoState->planetCount; ++i)
 	{
-		// ****TO-DO: DRAW PLANETS
-		// (hint: see how the teapot draws)
-		// (hint: the sphere's axis is 'Z')
+		currentDrawable = demoState->draw_sphere;
+		currentSceneObject = demoState->planetObject + i;
+
+		modelMatOrig = currentSceneObject->modelMat;
+		if (!useVerticalY)
+			a3real4x4Product(modelMat.m, modelMatOrig.m, convertY2Z.m);
+		else
+			modelMat = modelMatOrig;
+		a3real4x4TransformInverseIgnoreScale(modelMatInv.m, modelMat.m);
+		a3real4x4Product(modelViewProjectionMat.m, demoState->camera->viewProjectionMat.m, modelMat.m);
+
+		a3shaderUniformSendFloatMat(a3unif_mat4, 0, currentDemoProgram->uMVP, 1, modelViewProjectionMat.mm);
+		a3shaderUniformSendFloat(a3unif_vec4, currentDemoProgram->uColor, 1, planetColor[demoState->planetColorIndices[i]]);
+		a3vertexActivateAndRenderDrawable(currentDrawable);
 	}
 
 	
@@ -827,20 +868,42 @@ void a3demo_render(const a3_DemoState *demoState)
 	// ****TO-DO: display planet names
 	if (demoState->displayPlanetNames)
 	{
-		// ****TO-DO: name your planets, don't be boring like me
 		const char *planetNames[] = {
-			"Sun", 
+			"Super Hot", 
+			"I live here",
+			"Failed Earth Clone",
+			"Politics",
+			"Plan B"
 		};
 	//	a3vec4 pos_model = a3wVec4, pos_ndc;
 
 		glDisable(GL_DEPTH_TEST);
 		for (i = 0; i < demoState->planetCount; ++i)
 		{
-			// ****TO-DO: display the text in screen-space
 			// 1) transform world position to clip space
 			// 2) perspective divide for NDC
 			// 3) add height
 			// 4) display text
+			
+			currentSceneObject = demoState->planetObject + i;
+
+			a3vec4 fullPos, endPos;
+			fullPos.x = currentSceneObject->position.x;
+			fullPos.y = currentSceneObject->position.y;
+			fullPos.z = currentSceneObject->position.z;
+			fullPos.w = 1.0f;
+
+			//Convert pos to clip space
+			a3real4Real4x4ProductR(endPos.v, demoState->camera->viewProjectionMat.m, fullPos.v);
+			
+			//Divide to get to NDC and offset
+			a3real x = endPos.x / endPos.w - .025f;
+			a3real y = endPos.y / endPos.w + .075f;
+			a3real z = endPos.z / endPos.w;
+
+			//Draw text
+			a3textDraw(demoState->text, x, y, z, 1.0f, 1.0f, 1.0f, 1.0f,
+				planetNames[i], demoState->demoMode + 1, demoState->demoModeCount);
 		}
 		glEnable(GL_DEPTH_TEST);
 	}

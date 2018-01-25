@@ -17,7 +17,7 @@
 /*
 	animal3D SDK: Minimal 3D Animation Framework
 	By Daniel S. Buckstein
-	
+
 	a3_DemoState.h
 	Demo state interface and programmer function declarations.
 
@@ -49,7 +49,7 @@
 extern "C"
 {
 #else	// !__cplusplus
-	typedef struct a3_DemoState					a3_DemoState;
+typedef struct a3_DemoState					a3_DemoState;
 #endif	// __cplusplus
 
 
@@ -59,182 +59,182 @@ extern "C"
 	// good idea to make these numbers greater than what you actually need 
 	//	and if you end up needing more just increase the count... there's 
 	//	more than enough memory to hold extra objects
-	enum a3_DemoStateObjectMaxCounts
-	{
-		demoStateMaxCount_sceneObject = 16,
-		demoStateMaxCount_camera = 1,
-		demoStateMaxCount_timer = 1,
-		demoStateMaxCount_drawDataBuffer = 1,
-		demoStateMaxCount_vertexArray = 4,
-		demoStateMaxCount_drawable = 8,
-		demoStateMaxCount_shaderProgram = 2,
-	};
+enum a3_DemoStateObjectMaxCounts
+{
+	demoStateMaxCount_sceneObject = 25,
+	demoStateMaxCount_camera = 1,
+	demoStateMaxCount_timer = 1,
+	demoStateMaxCount_drawDataBuffer = 1,
+	demoStateMaxCount_vertexArray = 4,
+	demoStateMaxCount_drawable = 8,
+	demoStateMaxCount_shaderProgram = 2,
+};
 
 
 //-----------------------------------------------------------------------------
 
 	// persistent demo state data structure
-	struct a3_DemoState
-	{
-		//---------------------------------------------------------------------
-		// general variables pertinent to the state
+struct a3_DemoState
+{
+	//---------------------------------------------------------------------
+	// general variables pertinent to the state
 
-		// terminate key pressed
-		int exitFlag;
+	// terminate key pressed
+	int exitFlag;
 
-		// global vertical axis: Z = 0, Y = 1
-		int verticalAxis;
+	// global vertical axis: Z = 0, Y = 1
+	int verticalAxis;
 
-		// asset streaming between loads enabled (careful!)
-		int streaming;
+	// asset streaming between loads enabled (careful!)
+	int streaming;
 
-		// window and full-frame dimensions
-		unsigned int windowWidth, windowHeight;
-		unsigned int frameWidth, frameHeight;
-		int frameBorder;
-
-
-		//---------------------------------------------------------------------
-		// objects that have known or fixed instance count in the whole demo
-
-		// text renderer
-		int textInit, showText;
-		a3_TextRenderer text[1];
-
-		// input
-		a3_MouseInput mouse[1];
-		a3_KeyboardInput keyboard[1];
-		a3_XboxControllerInput xcontrol[4];
-
-		// pointer to fast trig table
-		float trigTable[4096 * 4];
+	// window and full-frame dimensions
+	unsigned int windowWidth, windowHeight;
+	unsigned int frameWidth, frameHeight;
+	int frameBorder;
 
 
-		//---------------------------------------------------------------------
-		// scene variables and objects
+	//---------------------------------------------------------------------
+	// objects that have known or fixed instance count in the whole demo
 
-		unsigned int demoMode, demoModeCount;
+	// text renderer
+	int textInit, showText;
+	a3_TextRenderer text[1];
 
-		// planet values (includes sun at center)
-		// ****TO-DO: ADD PLANET DATA
-		// (hint: data structures make life easy)
+	// input
+	a3_MouseInput mouse[1];
+	a3_KeyboardInput keyboard[1];
+	a3_XboxControllerInput xcontrol[4];
 
-		unsigned int planetCount;
-		int displayPlanetNames;
+	// pointer to fast trig table
+	float trigTable[4096 * 4];
 
+	int planetColorIndices[demoStateMaxCount_sceneObject];
+	float planetScales[demoStateMaxCount_sceneObject];
 
-		//---------------------------------------------------------------------
-		// object arrays: organized as anonymous unions for two reasons: 
-		//	1. easy to manage entire sets of the same type of object using the 
-		//		array component
-		//	2. at the same time, variables are named pointers
+	//---------------------------------------------------------------------
+	// scene variables and objects
 
-		// scene objects
-		union {
-			a3_DemoSceneObject sceneObject[demoStateMaxCount_sceneObject];
-			struct {
-				a3_DemoSceneObject
-					cameraObject[1],					// transform for camera
-					planetObject[10];					// planets & celestial objects (spheres)
-			};
+	unsigned int demoMode, demoModeCount;
+
+	// planet values (includes sun at center)
+	// ****TO-DO: ADD PLANET DATA
+	// (hint: data structures make life easy)
+
+	unsigned int planetCount;
+	int displayPlanetNames;
+
+	//---------------------------------------------------------------------
+	// object arrays: organized as anonymous unions for two reasons: 
+	//	1. easy to manage entire sets of the same type of object using the 
+	//		array component
+	//	2. at the same time, variables are named pointers
+
+	// scene objects
+	union {
+		a3_DemoSceneObject sceneObject[demoStateMaxCount_sceneObject];
+		struct {
+			a3_DemoSceneObject
+				cameraObject[1],					// transform for camera
+				planetObject[10];					// planets & celestial objects (spheres)			
 		};
-
-		// cameras
-		union {
-			a3_DemoCamera camera[demoStateMaxCount_camera];
-			struct {
-				a3_DemoCamera
-					sceneCamera[1];						// scene viewing camera
-			};
+	};
+	// cameras
+	union {
+		a3_DemoCamera camera[demoStateMaxCount_camera];
+		struct {
+			a3_DemoCamera
+				sceneCamera[1];						// scene viewing camera
 		};
-
-		// timers
-		union {
-			a3_Timer timer[demoStateMaxCount_timer];
-			struct {
-				a3_Timer
-					renderTimer[1];						// render FPS timer
-			};
-		};
-
-
-		// draw data buffers
-		union {
-			a3_VertexBuffer drawDataBuffer[demoStateMaxCount_drawDataBuffer];
-			struct {
-				a3_VertexBuffer
-					vbo_staticSceneObjectDrawBuffer[1];			// buffer to hold all data for static scene objects (e.g. grid)
-			};
-		};
-
-		// vertex array objects
-		union {
-			a3_VertexArrayDescriptor vertexArray[demoStateMaxCount_vertexArray];
-			struct {
-				a3_VertexArrayDescriptor
-					vao_position[1],							// VAO for vertex format with only position
-					vao_position_color[1],						// VAO for vertex format with position and color
-					vao_position_texcoord[1],					// VAO for vertex format with position and UVs
-					vao_tangent_basis[1];						// VAO for vertex format with full tangent basis
-			};
-		};
-
-		// drawables
-		union {
-			a3_VertexDrawable drawable[demoStateMaxCount_drawable];
-			struct {
-				a3_VertexDrawable
-					draw_grid[1],								// wireframe ground plane to emphasize scaling
-					draw_axes[1],								// coordinate axes at the center of the world
-					draw_skybox[1],								// skybox cube mesh
-					draw_groundPlane[1],						// tessellated ground plane mesh
-					draw_sphere[1],								// high-res sphere mesh
-					draw_cylinder[1],							// high-res cylinder mesh
-					draw_torus[1],								// high-res torus mesh
-					draw_teapot[1];								// can't not have a Utah teapot
-			};
-		};
-
-
-		// shader programs and uniforms
-		union {
-			a3_DemoStateShaderProgram shaderProgram[demoStateMaxCount_shaderProgram];
-			struct {
-				a3_DemoStateShaderProgram
-					prog_drawColor[1],					// draw color attribute
-					prog_drawColorUnif[1];				// draw uniform color
-			};
-		};
-
-
-		//---------------------------------------------------------------------
 	};
 
-	
+	// timers
+	union {
+		a3_Timer timer[demoStateMaxCount_timer];
+		struct {
+			a3_Timer
+				renderTimer[1];						// render FPS timer
+		};
+	};
+
+
+	// draw data buffers
+	union {
+		a3_VertexBuffer drawDataBuffer[demoStateMaxCount_drawDataBuffer];
+		struct {
+			a3_VertexBuffer
+				vbo_staticSceneObjectDrawBuffer[1];			// buffer to hold all data for static scene objects (e.g. grid)
+		};
+	};
+
+	// vertex array objects
+	union {
+		a3_VertexArrayDescriptor vertexArray[demoStateMaxCount_vertexArray];
+		struct {
+			a3_VertexArrayDescriptor
+				vao_position[1],							// VAO for vertex format with only position
+				vao_position_color[1],						// VAO for vertex format with position and color
+				vao_position_texcoord[1],					// VAO for vertex format with position and UVs
+				vao_tangent_basis[1];						// VAO for vertex format with full tangent basis
+		};
+	};
+
+	// drawables
+	union {
+		a3_VertexDrawable drawable[demoStateMaxCount_drawable];
+		struct {
+			a3_VertexDrawable
+				draw_grid[1],								// wireframe ground plane to emphasize scaling
+				draw_axes[1],								// coordinate axes at the center of the world
+				draw_skybox[1],								// skybox cube mesh
+				draw_groundPlane[1],						// tessellated ground plane mesh
+				draw_sphere[1],								// high-res sphere mesh
+				draw_cylinder[1],							// high-res cylinder mesh
+				draw_torus[1],								// high-res torus mesh
+				draw_teapot[1];								// can't not have a Utah teapot
+		};
+	};
+
+
+	// shader programs and uniforms
+	union {
+		a3_DemoStateShaderProgram shaderProgram[demoStateMaxCount_shaderProgram];
+		struct {
+			a3_DemoStateShaderProgram
+				prog_drawColor[1],					// draw color attribute
+				prog_drawColorUnif[1];				// draw uniform color
+		};
+	};
+
+
+	//---------------------------------------------------------------------
+};
+
+
 //-----------------------------------------------------------------------------
 
 	// demo-related functions
 
 	// other utilities
-	void a3demo_setDefaultGraphicsState();
+void a3demo_setDefaultGraphicsState();
 
-	// loading and unloading
-	void a3demo_loadGeometry(a3_DemoState *demoState);
-	void a3demo_loadShaders(a3_DemoState *demoState);
+// loading and unloading
+void a3demo_loadGeometry(a3_DemoState *demoState);
+void a3demo_loadShaders(a3_DemoState *demoState);
 
-	void a3demo_unloadGeometry(a3_DemoState *demoState);
-	void a3demo_unloadShaders(a3_DemoState *demoState);
+void a3demo_unloadGeometry(a3_DemoState *demoState);
+void a3demo_unloadShaders(a3_DemoState *demoState);
 
-	void a3demo_initScene(a3_DemoState *demoState);
+void a3demo_initScene(a3_DemoState *demoState);
 
-	void a3demo_refresh(a3_DemoState *demoState);
+void a3demo_refresh(a3_DemoState *demoState);
 
-	void a3demo_validateUnload(const a3_DemoState *demoState);
+void a3demo_validateUnload(const a3_DemoState *demoState);
 
-	// main loop
-	void a3demo_input(a3_DemoState *demoState, double dt);
-	void a3demo_update(a3_DemoState *demoState, double dt);
-	void a3demo_render(const a3_DemoState *demoState);
+// main loop
+void a3demo_input(a3_DemoState *demoState, double dt);
+void a3demo_update(a3_DemoState *demoState, double dt);
+void a3demo_render(const a3_DemoState *demoState);
 
 
 //-----------------------------------------------------------------------------
