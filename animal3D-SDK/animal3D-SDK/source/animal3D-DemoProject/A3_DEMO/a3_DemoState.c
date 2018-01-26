@@ -27,6 +27,7 @@
 	********************************************
 */
 
+//This file was modified by Tyler Chermely with permission from Daniel S. Buckstein
 
 #include "a3_DemoState.h"
 
@@ -873,7 +874,7 @@ void a3demo_render(const a3_DemoState *demoState)
 			"I live here",
 			"Failed Earth Clone",
 			"Politics",
-			"Plan B"
+			"Martians"
 		};
 	//	a3vec4 pos_model = a3wVec4, pos_ndc;
 
